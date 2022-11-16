@@ -124,15 +124,13 @@ void imprimeGrafo(Vertice G[], int ordem){
 	Aresta *aux;
 
 	printf("\nOrdem:   %d",ordem);
-	printf("\nLista de Adjacencia (custos das arestas entre parenteses):\n");
+	printf("\nLista de Adjacencia (custos das arestas entre par?nteses):\n");
 
 	for (i=0; i<ordem; i++){
-		printf("\n    v%d(%d): ", i, G[i].color);
+		printf("\n    v%d(%d): ", i, G[i].comp);
 		aux= G[i].prim;
 		for( ; aux != NULL; aux= aux->prox)
-			// printf("  v%d(%d)", aux->nome, aux->custo);
-			printf("  v%d(%d)", aux->nome, G[aux->nome].color);
-
+			printf("  v%d(%d)", aux->nome, aux->custo);
 	}
 	printf("\n\n");
 }
@@ -233,7 +231,8 @@ int eConexo(Vertice G[], int ordem){
 /*
 * Declarações de funções da busca em largura (BFS)
 */
-int bfs(Vertice G[], int s, int ordem);
+int BFS(Vertice G[], int s, int ordem);
+void imprimeGrafoBFS(Vertice G[], int ordem, int s);
 
 
 /*
@@ -278,7 +277,7 @@ int isEmpty(struct Queue* q) {
 // Adiciona vertices na fila
 void enqueue(struct Queue* q, int name) {
     if (q->rear == SIZE - 1) {
-        printf("\nFila esta cheia!\n"); // DEBUG
+        printf("\nFila cheia\n"); // DEBUG
         return ;
     } else {
         if (q->front == -1)
@@ -293,14 +292,13 @@ int dequeue(struct Queue* q) {
     int vertice;
     
     if (isEmpty(q)) {
-        printf("\nFila esta vazia!\n");
+        printf("\nFila vazia\n");
         vertice = -1;
     } else {
         vertice = q->items[q->front];
         q->front++;
 
         if (q->front > q->rear) {
-            printf("\nResetando a queue\n");
             q->front = q->rear = -1;
         }
     }
@@ -312,9 +310,9 @@ void printQueue(struct Queue* q) {
   int i = q->front;
 
   if (isEmpty(q)) {
-    printf("Queue is empty");
+    printf("Fila vazia");
   } else {
-    printf("\nQueue contains \n");
+    printf("\nElementos na fila \n");
     for (i = q->front; i < q->rear + 1; i++) {
       printf("%d ", q->items[i]);
     }
@@ -322,67 +320,76 @@ void printQueue(struct Queue* q) {
 }
 
 // Busca em largura
-int bfs(Vertice G[], int s, int ordem) {
-	printf("inside BSF\n\n");
-	
+int BFS(Vertice G[], int s, int ordem) {
+
 	for (int u = 0; u < ordem; u++) {
 		if (u == s) continue; // pula o vertice "s"
 		G[u].color = WHITE; // WHITE representa o numero 11 que é a cor branca
-		G[u].dist = -1;
-		G[u].pred = NULL; // predecessor, representado no algoritmo do Cormen por pi 
-		printf("G[%d].color = %d | dist = %d\n", u, G[u].color, G[u].dist);
+		G[u].dist = -1; // valor -1 representa o simbolo de infinito no algoritmo do cormen
+		G[u].pred = -1; // valor -1 representa o NIL no algoritmo do cormen
+		// predecessor, representado no algoritmo do Cormen por pi 
 	}
 
 	G[s].color = GRAY;
 	G[s].dist = 0;
-	G[s].pred = NULL;
-	printf("\n\nG[%d].color = %d | dist = %d\n\n", s, G[s].color, G[s].dist);
-	struct Queue* q = createQueue();
-	imprimeGrafo(G, ordem);
-	enqueue(q, s);
-	while (!isEmpty(q)){
-		printf("\n\ninside while\n\n");
-		int u = dequeue(q);
-		printQueue(q);
-		Aresta *v= G[u].prim;
-		printf("\n");
-		for( ; v != NULL; v= v->prox) {
+	G[s].pred = -1;
 
-			printf("  v%d, color: %d", G[v->nome].nome, G[v->nome].color);
+	struct Queue* q = createQueue();
+	enqueue(q, s);
+
+	while (!isEmpty(q)){
+		int u = dequeue(q);
+		Aresta *v= G[u].prim;
+		
+		for( ; v != NULL; v= v->prox) {
 			if (G[v->nome].color == WHITE) {
 				G[v->nome].color = GRAY;
 				G[v->nome].dist = G[u].dist+1;
 				G[v->nome].pred = G[u].nome;
 				enqueue(q, G[v->nome].nome);
-				printf("\nenqueuing: %d\n\n", G[v->nome].nome);
-				printQueue(q);
-				imprimeGrafo(G, ordem);
 			}
 		}
 
 		G[u].color = BLACK;
-		printf("  v%d, color: %d", G[u].nome, G[u].color);
-		imprimeGrafo(G, ordem);
 	}
-	printf("\n\nEND\n\n");
-	imprimeGrafo(G, ordem);
+}
+
+/*  
+ * Imprime o grafo com as informações da Busca em Largura (BFS)
+ */
+void imprimeGrafoBFS(Vertice G[], int ordem, int s){
+	int i;
+	Aresta *aux;
+	printf("\n\n=====================================================");
+	printf("\n    #     Atributos da Busca em Largura     #\n");
+
+	printf("\nRaiz da Arvore = [%d]\n", s);
+	printf("------------------------------------------------------");
+	for (i=0; i<ordem; i++){
+		printf("\n   V%d | Cor: %d | Distancia: %d | Predecessor: %d", G[i].nome, G[i].color, G[i].dist, G[i].pred);
+	}
+	printf("\n------------------------------------------------------\n");
+	printf("Legenda:");
+	printf("\nCores: 11 = Branco | 22 = Cinza | 33 = Preto\n");
+	printf("Predecessor = -1 indica que o vertice nao tem predecessor\n\n");
+}
+
+int eConexoBLargura(Vertice G[],int s, int ordem) {
+	BFS(G, s, ordem);
+	imprimeGrafoBFS(G, ordem, s);
 
 	// Após fazer a busca em largura passando por todos os vértices, 
 	// verifica se algum vértice não possui a cor preta.
 	// Se todos possuírem a cor preta, é um grafo conexo, caso contrário é desconexo
 
-	// Aresta *aux;
 
 	for (int i=0; i<ordem; i++){
-		printf("\n    v%d(%d): ", i, G[i].color);
 		if (G[i].color != BLACK) {
-			printf("nao conexo\n\n");
 			return 0;
 		}
 	}
 	return 1;
 }
-
 
 int dfs(Vertice G[], int ordem) {
 	for (int u = 0; u < ordem; u++) {
@@ -453,9 +460,9 @@ int main(int argc, char *argv[]) {
     //    printf("O grafo e conexo\n");
     // else
     //    printf("O grafo nao e conexo\n");
-	// imprimeGrafo(G, ordemG);
+	imprimeGrafo(G, ordemG);
 
-	// int isConexo = bfs(G, 0, ordemG);
+	// int isConexo = BFS(G, 0, ordemG);
 	
 	// if (isConexo) {
 	// 	printf("\nO grafo e conexo\n\n");
@@ -463,15 +470,14 @@ int main(int argc, char *argv[]) {
 	// 	printf("\nO grafo nao e conexo\n\n");
 	// }
 	
-	int isConexoDFS = dfs(G, ordemG);
-
-	if (isConexoDFS) {
-		printf("\nO grafo e conexo DFS\n\n");
+	int checkBFS = eConexoBLargura(G, 3, ordemG);
+	printf("Segundo a busca em largura, ");
+	if (checkBFS) {
+		printf("o grafo e conexo.\n\n");
 	} else {
-		printf("\nO grafo nao e conexo DFS \n\n");
+		printf("o grafo e desconexo.\n\n");
 	}
 
-	imprimeGrafo(G, ordemG);
 
 	destroiGrafo(&G, ordemG);
     // system("PAUSE");
