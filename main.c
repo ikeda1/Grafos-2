@@ -239,7 +239,7 @@ void imprimeGrafoBFS(Vertice G[], int ordem, int s);
 * Declarações de funções da busca em profundidade (DFS)
 */
 
-int dfs(Vertice G[], int ordem);
+int DFS(Vertice G[], int ordem);
 int DFS_Visit(Vertice G[], int u, int ordem, int time);
 
 /*
@@ -371,7 +371,7 @@ void imprimeGrafoBFS(Vertice G[], int ordem, int s){
 	printf("\n------------------------------------------------------\n");
 	printf("Legenda:");
 	printf("\nCores: 11 = Branco | 22 = Cinza | 33 = Preto\n");
-	printf("Predecessor = -1 indica que o vertice nao tem predecessor\n\n");
+	printf("Predecessor = -1 indica que o vertice nao tem predecessor porque e o vertice inicial da busca\n\n");
 }
 
 int eConexoBLargura(Vertice G[],int s, int ordem) {
@@ -391,11 +391,14 @@ int eConexoBLargura(Vertice G[],int s, int ordem) {
 	return 1;
 }
 
-int dfs(Vertice G[], int ordem) {
+int DFS(Vertice G[], int ordem) {
 	for (int u = 0; u < ordem; u++) {
 		G[u].color = WHITE; // WHITE representa o numero 11 que é a cor branca
-		G[u].pred = NULL; // predecessor, representado no algoritmo do Cormen por pi
+		G[u].pred = -2; // -2 representa um vertice sem predecessor atribuído
+		// predecessor, representado no algoritmo do Cormen por pi
 	}
+
+	G[0].pred = -1; // -1 representa um vertice sem predecessor porque é o vértice inicial da busca
 
 	int time = 0;
 
@@ -413,9 +416,7 @@ int DFS_Visit(Vertice G[], int u, int ordem, int time) {
 
 	Aresta *aux;
 	aux = G[u].prim;
-	printf("\n");
 	for (; aux!= NULL; aux=aux->prox) {// Explora as arestas incidentes nesse vertice
-		printf("  v%d(%d)", aux->nome, G[aux->nome].color);
 		if (G[aux->nome].color == WHITE) {
 			G[aux->nome].pred = u;
 			DFS_Visit(G, aux->nome, ordem, tempo);
@@ -427,6 +428,45 @@ int DFS_Visit(Vertice G[], int u, int ordem, int time) {
 	G[u].f = tempo;
 }
 
+/*  
+ * Imprime o grafo com as informações da Busca em Profundidade (DFS)
+ */
+void imprimeGrafoDFS(Vertice G[], int ordem){
+	int i;
+	Aresta *aux;
+	printf("\n\n=====================================================");
+	printf("\n    #     Atributos da Busca em Profundidade     #\n");
+
+	// printf("\nRaiz da Arvore = [%d]\n", s);
+	printf("------------------------------------------------------");
+	for (i=0; i<ordem; i++){
+		printf("\n   V%d | Cor: %d | Tempo Inicial: %d | Tempo Final: %d | Predecessor: %d", G[i].nome, G[i].color, G[i].d, G[i].f, G[i].pred);
+	}
+	printf("\n------------------------------------------------------\n");
+	printf("Legenda:");
+	printf("\nCores: 11 = Branco | 22 = Cinza | 33 = Preto\n");
+	printf("Predecessor = -1 indica que o vertice nao tem predecessor porque e o vertice inicial da busca\n");
+	printf("Predecessor = -2 indica que o vertice nao foi atribuido nenhum predecessor\n\n");
+}
+
+int eConexoBProf(Vertice G[], int ordem) {
+	DFS(G, ordem);
+	imprimeGrafoDFS(G, ordem);
+
+	// Após fazer a busca em profundidade passando por todos os vértices, 
+	// verifica se algum vértice não possui a cor preta ou se não possui predecessores quando não é o vertice inicial
+	// Se todos possuírem a cor preta e todos exceto o vertice inicial possuírem predecessores, é um grafo conexo, caso contrário é desconexo
+
+
+	for (int i=0; i<ordem; i++){
+		if (G[i].color != BLACK || G[i].pred == -2) { // se o vertice tiver cor preta ou predecessor = -2, que indica vertice sem predecessor atribuído
+			return 0;
+		}
+	}
+	return 1;
+}
+
+
 /*
  * Programinha simples para testar a representacao de grafo
  */
@@ -436,6 +476,8 @@ int main(int argc, char *argv[]) {
 	int ordemG= 6; 
 		
 	criaGrafo(&G, ordemG);
+
+	// Teste 1
 	acrescentaAresta(G,ordemG,2,3,1);
 	acrescentaAresta(G,ordemG,0,1,1);
 	acrescentaAresta(G,ordemG,1,1,1);
@@ -444,35 +486,45 @@ int main(int argc, char *argv[]) {
 	acrescentaAresta(G,ordemG,3,4,1);
 	acrescentaAresta(G,ordemG,4,5,1);
 
+	// Teste 2
+	// acrescentaAresta(G,ordemG,2,3,1);
+	// acrescentaAresta(G,ordemG,0,1,1);
+	// acrescentaAresta(G,ordemG,1,1,1);
+	// acrescentaAresta(G,ordemG,0,2,1);
+	// acrescentaAresta(G,ordemG,0,3,1);
+	// acrescentaAresta(G,ordemG,3,4,1);
+
 	
 	for(v=0; v<ordemG;v++){
-	   i= calculaGrauDeVertice(G,ordemG,v);
-	   printf("O grau do vertice %d e %d\n", v, i);
-    }
+		i= calculaGrauDeVertice(G,ordemG,v);
+		printf("O grau do vertice %d e %d\n", v, i);
+	}
     
-    i= calculaGrauMaximo(G,ordemG);
-    printf("O grau maximo do grafo e %d\n", i);
-    
-    i= calculaTamanho(G,ordemG);
-    printf("O tamanho do grafo e %d\n", i);
-    
-    // if(eConexo(G,ordemG))
-    //    printf("O grafo e conexo\n");
-    // else
-    //    printf("O grafo nao e conexo\n");
+	i= calculaGrauMaximo(G,ordemG);
+	printf("O grau maximo do grafo e %d\n", i);
+	
+	i= calculaTamanho(G,ordemG);
+	printf("O tamanho do grafo e %d\n", i);
+	
+	if(eConexo(G,ordemG))
+		printf("O grafo e conexo\n");
+	else
+		printf("O grafo nao e conexo\n");
 	imprimeGrafo(G, ordemG);
 
-	// int isConexo = BFS(G, 0, ordemG);
-	
-	// if (isConexo) {
-	// 	printf("\nO grafo e conexo\n\n");
-	// } else {
-	// 	printf("\nO grafo nao e conexo\n\n");
-	// }
+
 	
 	int checkBFS = eConexoBLargura(G, 3, ordemG);
 	printf("Segundo a busca em largura, ");
 	if (checkBFS) {
+		printf("o grafo e conexo.\n");
+	} else {
+		printf("o grafo e desconexo.\n");
+	}
+
+	int checkDFS = eConexoBProf(G, ordemG);
+	printf("Segundo a busca em profundidade, ");
+	if (checkDFS) {
 		printf("o grafo e conexo.\n\n");
 	} else {
 		printf("o grafo e desconexo.\n\n");
@@ -480,15 +532,7 @@ int main(int argc, char *argv[]) {
 
 
 	destroiGrafo(&G, ordemG);
-    // system("PAUSE");
+	system("PAUSE");
 
-	
-	// printQueue(q);
-	// enqueue(q, 1);
-	// enqueue(q, 2);
-	// enqueue(q, 3);
-	// printQueue(q);
-	// dequeue(q);
-	// printQueue(q);
 	return 0;
 }
